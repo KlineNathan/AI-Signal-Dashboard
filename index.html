@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Signal — Intelligence Dashboard</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── CHIME LIGHT THEME ── */
+    :root {
+      --font-body: 'Helvetica Neue', Helvetica, system-ui, sans-serif;
+      --font-mono: 'Fira Code', 'SF Mono', Consolas, monospace;
+
+      /* Surfaces */
+      --bg:              #FFFFFF;
+      --bg-card:         #FFFFFF;
+      --bg-alt:          #F4FBF5;
+      --bg-hover:        #ECF9EE;
+      --bg-input:        #F4FBF5;
+
+      /* Borders */
+      --border:          rgba(13, 64, 41, 0.14);
+      --border-dim:      rgba(13, 64, 41, 0.08);
+      --border-bright:   rgba(13, 64, 41, 0.22);
+
+      /* Chime Green */
+      --accent:          #1EC677;
+      --accent-dark:     #009C52;
+      --accent-bg:       rgba(30, 198, 119, 0.08);
+      --accent-border:   rgba(30, 198, 119, 0.28);
+
+      /* Text */
+      --text:            #0D4029;
+      --text-2:          rgba(5, 35, 22, 0.58);
+      --text-3:          rgba(5, 35, 22, 0.36);
+
+      /* Semantic */
+      --positive:        #16A34A;
+      --positive-bg:     rgba(22, 163, 74, 0.09);
+      --neutral:         #6B7280;
+      --neutral-bg:      rgba(107, 114, 128, 0.09);
+      --cautious:        #D97706;
+      --cautious-bg:     rgba(217, 119, 6, 0.09);
+
+      /* Topic accents */
+      --blue:            #0369A1;
+      --blue-bg:         rgba(3, 105, 161, 0.08);
+      --teal:            #0D9488;
+      --teal-bg:         rgba(13, 148, 136, 0.08);
+      --red:             #DC2626;
+      --red-bg:          rgba(220, 38, 38, 0.08);
+      --amber:           #D97706;
+      --amber-bg:        rgba(217, 119, 6, 0.08);
+      --emerald:         #059669;
+      --emerald-bg:      rgba(5, 150, 105, 0.08);
+
+      /* Shadows */
+      --shadow-sm:  0 1px 3px rgba(13,64,41,0.06), 0 1px 2px rgba(13,64,41,0.04);
+      --shadow-md:  0 4px 12px rgba(13,64,41,0.08), 0 2px 4px rgba(13,64,41,0.04);
+      --shadow-lg:  0 8px 24px rgba(13,64,41,0.10), 0 3px 8px rgba(13,64,41,0.06);
+    }
+
+    /* ── CHIME DARK THEME ── */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg:              #052316;
+        --bg-card:         #0D4029;
+        --bg-alt:          #0D4029;
+        --bg-hover:        #134e3a;
+        --bg-input:        #0D4029;
+        --border:          rgba(236, 249, 238, 0.12);
+        --border-dim:      rgba(236, 249, 238, 0.07);
+        --border-bright:   rgba(236, 249, 238, 0.22);
+        --accent:          #1EC677;
+        --accent-dark:     #4ade80;
+        --accent-bg:       rgba(30, 198, 119, 0.12);
+        --accent-border:   rgba(30, 198, 119, 0.30);
+        --text:            #ECF9EE;
+        --text-2:          rgba(236, 249, 238, 0.65);
+        --text-3:          rgba(236, 249, 238, 0.38);
+        --positive:        #4ade80;
+        --positive-bg:     rgba(74, 222, 128, 0.10);
+        --neutral:         #9CA3AF;
+        --neutral-bg:      rgba(156, 163, 175, 0.10);
+        --cautious:        #FBBF24;
+        --cautious-bg:     rgba(251, 191, 36, 0.10);
+        --blue:            #38BDF8;
+        --blue-bg:         rgba(56, 189, 248, 0.10);
+        --teal:            #2DD4BF;
+        --teal-bg:         rgba(45, 212, 191, 0.10);
+        --red:             #F87171;
+        --red-bg:          rgba(248, 113, 113, 0.10);
+        --amber:           #FBBF24;
+        --amber-bg:        rgba(251, 191, 36, 0.10);
+        --emerald:         #34D399;
+        --emerald-bg:      rgba(52, 211, 153, 0.10);
+        --shadow-sm:  0 1px 3px rgba(0,0,0,0.20);
+        --shadow-md:  0 4px 12px rgba(0,0,0,0.25);
+        --shadow-lg:  0 8px 24px rgba(0,0,0,0.30);
+      }
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 14px;
+      line-height: 1.5;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border-dim);
+      box-shadow: 0 1px 0 var(--border-dim);
+      padding: 0 32px; height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-brand { display: flex; align-items: center; gap: 12px; }
+    .nav-logo {
+      width: 32px; height: 32px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .nav-logo svg { width: 18px; height: 18px; fill: white; }
+    .nav-lockup { display: flex; align-items: baseline; gap: 6px; }
+    .nav-product { font-size: 16px; font-weight: 700; letter-spacing: -0.4px; color: var(--text); }
+    .nav-product em { font-style: normal; color: var(--accent-dark); }
+    .nav-divider { width: 1px; height: 16px; background: var(--border); }
+    .nav-sub { font-size: 12px; color: var(--text-3); font-weight: 400; }
+    .nav-right { display: flex; align-items: center; gap: 12px; }
+    .nav-updated { font-size: 12px; color: var(--text-3); }
+
+    .btn {
+      background: var(--bg-card); border: 1px solid var(--border);
+      color: var(--text-2); padding: 7px 16px; border-radius: 8px;
+      font-size: 12px; font-family: var(--font-body); font-weight: 500;
+      cursor: pointer; transition: all 0.15s;
+      display: flex; align-items: center; gap: 6px;
+      box-shadow: var(--shadow-sm);
+    }
+    .btn:hover { background: var(--bg-hover); border-color: var(--accent); color: var(--accent-dark); }
+    .btn.spinning .icon { display: inline-block; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── MAIN ── */
+    main { max-width: 1360px; margin: 0 auto; padding: 28px 32px; }
+
+    /* ── BANNER ── */
+    .banner {
+      display: none;
+      background: var(--cautious-bg); border: 1px solid rgba(217,119,6,0.25);
+      border-radius: 8px; padding: 10px 16px;
+      font-size: 12px; color: var(--cautious);
+      margin-bottom: 24px; align-items: center; gap: 8px;
+    }
+    .banner.show { display: flex; }
+
+    /* ── STATS BAR ── */
+    .stats-bar { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 24px; }
+    .stat-card {
+      background: var(--bg-card); border: 1px solid var(--border-dim);
+      border-radius: 12px; padding: 20px 22px;
+      box-shadow: var(--shadow-sm);
+      transition: box-shadow 0.15s, border-color 0.15s;
+    }
+    .stat-card:hover { box-shadow: var(--shadow-md); border-color: var(--border); }
+    .stat-label {
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.8px; color: var(--text-3); margin-bottom: 10px;
+      font-family: var(--font-mono);
+    }
+    .stat-value { font-size: 32px; font-weight: 700; letter-spacing: -1.5px; color: var(--text); }
+    .stat-value.accent { color: var(--accent-dark); font-size: 18px; font-weight: 600; letter-spacing: -0.3px; margin-top: 4px; }
+    .stat-sub { font-size: 11px; color: var(--text-3); margin-top: 5px; }
+
+    /* ── VIEW TABS ── */
+    .view-tabs {
+      display: flex; gap: 4px;
+      background: var(--bg-alt); border: 1px solid var(--border-dim);
+      border-radius: 12px; padding: 5px;
+      margin-bottom: 20px;
+    }
+    .tab-btn {
+      flex: 1; padding: 9px 14px;
+      background: transparent; border: 1px solid transparent; border-radius: 8px;
+      color: var(--text-2); font-size: 13px; font-family: var(--font-body); font-weight: 500;
+      cursor: pointer; transition: all 0.15s;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .tab-btn:hover { background: var(--bg-hover); color: var(--text); border-color: var(--border-dim); }
+    .tab-btn.active {
+      background: var(--bg-card); border-color: var(--accent-border);
+      color: var(--accent-dark); font-weight: 600;
+      box-shadow: var(--shadow-sm);
+    }
+    .tab-icon { font-size: 13px; }
+    .tab-count {
+      font-size: 10px; font-weight: 700; min-width: 20px; text-align: center;
+      background: var(--border-dim); border-radius: 5px;
+      padding: 1px 5px; color: var(--text-3);
+      transition: all 0.15s; font-family: var(--font-mono);
+    }
+    .tab-btn.active .tab-count { background: var(--accent-bg); color: var(--accent-dark); border: 1px solid var(--accent-border); }
+
+    /* ── FILTERS ── */
+    .filters {
+      background: var(--bg-card); border: 1px solid var(--border-dim);
+      border-radius: 12px; padding: 14px 18px;
+      display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+      margin-bottom: 20px; box-shadow: var(--shadow-sm);
+    }
+    .filter-search {
+      flex: 1; min-width: 200px;
+      background: var(--bg-input); border: 1px solid var(--border);
+      color: var(--text); padding: 8px 12px; border-radius: 8px;
+      font-size: 13px; font-family: var(--font-body); outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .filter-search::placeholder { color: var(--text-3); }
+    .filter-search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
+    select.filter {
+      background: var(--bg-input); border: 1px solid var(--border);
+      color: var(--text); padding: 8px 28px 8px 10px; border-radius: 8px;
+      font-size: 12px; font-family: var(--font-body); outline: none; cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23009C52' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 10px center;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    select.filter:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); outline: none; }
+    .filter-count { margin-left: auto; font-size: 12px; color: var(--text-3); white-space: nowrap; font-family: var(--font-mono); }
+
+    /* ── VIEW PANELS ── */
+    .view-panel { display: none; }
+    .view-panel.active { display: block; }
+
+    /* ── SECTION HEADER ── */
+    .section-header {
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.8px; color: var(--text-3); margin-bottom: 14px;
+      font-family: var(--font-mono);
+    }
+
+    /* ── SIGNAL CARDS ── */
+    .signal-feed { display: flex; flex-direction: column; gap: 10px; }
+    .signal-card {
+      background: var(--bg-card); border: 1px solid var(--border-dim);
+      border-radius: 12px; padding: 18px 22px;
+      box-shadow: var(--shadow-sm);
+      transition: box-shadow 0.15s, border-color 0.15s, transform 0.1s;
+    }
+    .signal-card:hover {
+      box-shadow: var(--shadow-md); border-color: var(--border);
+      transform: translateY(-1px);
+    }
+
+    .card-head { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; margin-bottom: 10px; }
+    .badge {
+      font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 6px;
+      white-space: nowrap; letter-spacing: 0.1px;
+    }
+    .badge-company {
+      background: var(--bg-alt); border: 1px solid var(--border);
+      color: var(--text); font-size: 12px; font-weight: 600;
+    }
+    .badge-tier { font-size: 10px; font-family: var(--font-mono); }
+    .t1 { background: var(--accent-bg); color: var(--accent-dark); border: 1px solid var(--accent-border); }
+    .t2 { background: var(--blue-bg); color: var(--blue); border: 1px solid rgba(3,105,161,0.2); }
+    .t3 { background: var(--neutral-bg); color: var(--neutral); border: 1px solid rgba(107,114,128,0.2); }
+
+    .badge-topic { text-transform: uppercase; letter-spacing: 0.4px; font-size: 10px; font-family: var(--font-mono); }
+    .tp-capability_claim       { background: var(--blue-bg);    color: var(--blue);    border: 1px solid rgba(3,105,161,0.20); }
+    .tp-efficiency_metric      { background: var(--accent-bg);  color: var(--accent-dark); border: 1px solid var(--accent-border); }
+    .tp-investment_strategy    { background: var(--amber-bg);   color: var(--amber);   border: 1px solid rgba(217,119,6,0.20); }
+    .tp-thought_leadership     { background: var(--teal-bg);    color: var(--teal);    border: 1px solid rgba(13,148,136,0.20); }
+    .tp-regulatory_risk        { background: var(--red-bg);     color: var(--red);     border: 1px solid rgba(220,38,38,0.20); }
+    .tp-customer_facing_launch { background: var(--emerald-bg); color: var(--emerald); border: 1px solid rgba(5,150,105,0.20); }
+
+    .sent-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .s-positive { background: var(--positive); }
+    .s-neutral  { background: var(--neutral); }
+    .s-cautious { background: var(--cautious); }
+
+    .card-time { margin-left: auto; font-size: 11px; color: var(--text-3); font-family: var(--font-mono); }
+    .card-summary { font-size: 14px; line-height: 1.7; color: var(--text); margin-bottom: 12px; }
+
+    .card-extras { display: flex; gap: 10px; flex-wrap: wrap; }
+    .card-stat {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--accent-bg); border: 1px solid var(--accent-border);
+      color: var(--accent-dark); padding: 5px 11px; border-radius: 7px;
+      font-size: 12px; font-weight: 600;
+    }
+    .card-quote {
+      flex: 1; min-width: 200px;
+      background: var(--blue-bg); border-left: 3px solid var(--blue);
+      padding: 7px 12px; border-radius: 0 7px 7px 0;
+      font-size: 12px; color: var(--text-2); font-style: italic;
+      line-height: 1.55;
+    }
+    .quote-attr { font-style: normal; font-weight: 600; color: var(--text-3); }
+
+    .card-foot {
+      display: flex; align-items: center; gap: 8px;
+      margin-top: 12px; padding-top: 12px;
+      border-top: 1px solid var(--border-dim);
+    }
+    .confidence-badge {
+      font-size: 10px; color: var(--text-3); font-family: var(--font-mono);
+      background: var(--bg-alt); border: 1px solid var(--border-dim);
+      padding: 2px 6px; border-radius: 4px;
+    }
+    .source-pill {
+      font-size: 11px; color: var(--text-3);
+      background: var(--bg-alt); border: 1px solid var(--border-dim);
+      padding: 3px 9px; border-radius: 5px;
+      transition: background 0.12s, border-color 0.12s;
+    }
+    .source-link { text-decoration: none; }
+    .source-link:hover .source-pill { background: var(--bg-hover); border-color: var(--border); color: var(--accent-dark); }
+    .no-source { font-style: italic; }
+    .card-link {
+      display: inline-flex; align-items: center; gap: 4px;
+      margin-left: auto; font-size: 11px; font-weight: 600;
+      color: var(--accent-dark); text-decoration: none;
+      background: var(--accent-bg); border: 1px solid var(--accent-border);
+      padding: 4px 11px; border-radius: 6px; white-space: nowrap;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .card-link:hover { background: rgba(30,198,119,0.15); border-color: var(--accent); }
+
+    /* ── COMPANY GRID ── */
+    .company-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(295px, 1fr));
+      gap: 16px;
+    }
+    .company-card {
+      background: var(--bg-card); border: 1px solid var(--border-dim);
+      border-radius: 14px; padding: 20px;
+      cursor: pointer;
+      box-shadow: var(--shadow-sm);
+      transition: box-shadow 0.15s, border-color 0.15s, transform 0.1s;
+      position: relative; overflow: hidden;
+    }
+    .company-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: var(--co-color, var(--accent)); opacity: 0.85;
+    }
+    .company-card:hover {
+      box-shadow: var(--shadow-lg); border-color: var(--border);
+      transform: translateY(-2px);
+    }
+    .company-card-head { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+    .company-avatar {
+      width: 44px; height: 44px; border-radius: 11px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 19px; font-weight: 800; color: #fff;
+      flex-shrink: 0; letter-spacing: -0.5px;
+    }
+    .company-meta { flex: 1; min-width: 0; }
+    .company-name {
+      font-size: 15px; font-weight: 700; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      letter-spacing: -0.3px;
+    }
+    .company-sub { font-size: 11px; color: var(--text-3); margin-top: 3px; display: flex; align-items: center; gap: 7px; }
+    .co-week-badge { color: var(--accent-dark); font-weight: 600; font-size: 10px; font-family: var(--font-mono); }
+
+    .sentiment-mini { display: flex; height: 5px; border-radius: 3px; overflow: hidden; margin-bottom: 14px; gap: 2px; }
+    .sm-pos { background: var(--positive); }
+    .sm-neu { background: var(--neutral); }
+    .sm-cau { background: var(--cautious); }
+
+    .company-latest {
+      font-size: 12px; color: var(--text-2); line-height: 1.6;
+      margin-bottom: 10px;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .company-stat-inline {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: var(--accent-bg); border: 1px solid var(--accent-border);
+      color: var(--accent-dark); padding: 3px 9px; border-radius: 6px;
+      font-size: 11px; font-weight: 600; margin-bottom: 14px;
+      max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .company-card-foot {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-top: 12px; border-top: 1px solid var(--border-dim);
+    }
+    .company-last-seen { font-size: 11px; color: var(--text-3); font-family: var(--font-mono); }
+    .company-cta {
+      font-size: 11px; font-weight: 600; color: var(--accent-dark);
+      background: var(--accent-bg); border: 1px solid var(--accent-border);
+      padding: 4px 10px; border-radius: 6px; transition: background 0.15s;
+    }
+    .company-card:hover .company-cta { background: rgba(30,198,119,0.14); }
+
+    /* ── TOPIC VIEW ── */
+    .topic-section { margin-bottom: 12px; }
+    .topic-header-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 13px 18px;
+      background: var(--bg-card); border: 1px solid var(--border-dim);
+      border-radius: 12px; cursor: pointer;
+      box-shadow: var(--shadow-sm);
+      transition: background 0.15s, border-radius 0.15s, box-shadow 0.15s;
+      user-select: none;
+    }
+    .topic-section:not(.collapsed) .topic-header-row {
+      border-radius: 12px 12px 0 0;
+    }
+    .topic-header-row:hover { background: var(--bg-hover); }
+    .topic-icon { font-size: 16px; width: 22px; text-align: center; }
+    .topic-name { font-size: 14px; font-weight: 600; color: var(--text); }
+    .topic-count-badge {
+      margin-left: auto; font-size: 10px; font-weight: 600;
+      padding: 2px 9px; border-radius: 5px; font-family: var(--font-mono);
+    }
+    .topic-expand-arrow { font-size: 11px; color: var(--text-3); transition: transform 0.2s; }
+    .topic-section.collapsed .topic-expand-arrow { transform: rotate(-90deg); }
+    .topic-body {
+      border: 1px solid var(--border-dim); border-top: none;
+      border-radius: 0 0 12px 12px; overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+    .topic-section.collapsed .topic-body { display: none; }
+    .topic-cards { display: flex; flex-direction: column; }
+    .topic-cards .signal-card {
+      border-radius: 0; border-left: none; border-right: none; border-bottom: none;
+      border-top: 1px solid var(--border-dim); box-shadow: none;
+    }
+    .topic-cards .signal-card:first-child { border-top: none; }
+    .topic-cards .signal-card:hover { transform: none; box-shadow: none; background: var(--bg-hover); }
+    .topic-more-btn {
+      padding: 11px; text-align: center;
+      font-size: 12px; color: var(--accent-dark); cursor: pointer; font-weight: 600;
+      background: var(--bg-card); border-top: 1px solid var(--border-dim);
+      transition: background 0.15s;
+    }
+    .topic-more-btn:hover { background: var(--bg-hover); }
+
+    /* ── CHARTS ── */
+    .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .chart-box {
+      background: var(--bg-card); border: 1px solid var(--border-dim);
+      border-radius: 14px; padding: 22px;
+      box-shadow: var(--shadow-sm);
+    }
+    .chart-box.full-width { grid-column: 1 / -1; }
+    .chart-title {
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.8px; color: var(--text-3); margin-bottom: 18px;
+      font-family: var(--font-mono);
+    }
+    .chart-canvas-wrap { position: relative; height: 220px; }
+    .chart-canvas-wrap.tall { height: 260px; }
+
+    /* ── STATES ── */
+    .loading { text-align: center; padding: 72px; color: var(--text-3); }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    .dot {
+      display: inline-block; width: 8px; height: 8px;
+      background: var(--accent); border-radius: 50%; margin: 0 3px;
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+    .dot:nth-child(2){animation-delay:.2s} .dot:nth-child(3){animation-delay:.4s}
+    .empty { text-align: center; padding: 80px 20px; color: var(--text-2); }
+    .empty h3 { font-size: 17px; margin-bottom: 8px; color: var(--text); font-weight: 600; }
+    .empty p { font-size: 13px; color: var(--text-3); }
+
+    /* ── RESPONSIVE ── */
+    @media(max-width:1024px){ .stats-bar { grid-template-columns: repeat(2,1fr); } }
+    @media(max-width:900px){
+      .chart-grid { grid-template-columns: 1fr; }
+      .chart-box.full-width { grid-column: 1; }
+    }
+    @media(max-width:640px){
+      nav, main { padding-left: 16px; padding-right: 16px; }
+      .stats-bar { grid-template-columns: 1fr 1fr; }
+      .company-grid { grid-template-columns: 1fr; }
+      .tab-btn { font-size: 12px; padding: 8px 8px; }
+      .tab-icon { display: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <div class="nav-logo">
+      <!-- Signal / radar icon -->
+      <svg viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="9" cy="9" r="2.5" fill="white"/>
+        <path d="M9 9 m-5.5 0 a5.5 5.5 0 0 1 5.5-5.5" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+        <path d="M9 9 m-8.5 0 a8.5 8.5 0 0 1 8.5-8.5" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" opacity="0.4"/>
+      </svg>
+    </div>
+    <div class="nav-lockup">
+      <span class="nav-product">AI&nbsp;<em>Signal</em></span>
+      <div class="nav-divider"></div>
+      <span class="nav-sub">Competitive Intelligence</span>
+    </div>
+  </div>
+  <div class="nav-right">
+    <span class="nav-updated" id="lastUpdated">—</span>
+    <button class="btn" id="refreshBtn" onclick="loadData()">
+      <span class="icon">↻</span> Refresh
+    </button>
+  </div>
+</nav>
+
+<main>
+
+  <div class="banner" id="demoBanner">
+    Showing sample data — live data loads automatically when the hourly routine writes to the sheet.
+  </div>
+
+  <!-- STATS BAR -->
+  <div class="stats-bar">
+    <div class="stat-card">
+      <div class="stat-label">Total Signals</div>
+      <div class="stat-value" id="sTotal">—</div>
+      <div class="stat-sub" id="sTotalSub">This quarter</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Companies Tracked</div>
+      <div class="stat-value" id="sCompanies">—</div>
+      <div class="stat-sub" id="sWeekLabel">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Signals This Week</div>
+      <div class="stat-value" id="sWeek">—</div>
+      <div class="stat-sub">last 7 days</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Top Topic</div>
+      <div class="stat-value accent" id="sTopTopic">—</div>
+      <div class="stat-sub" id="sTopTopicCount">—</div>
+    </div>
+  </div>
+
+  <!-- VIEW TABS -->
+  <div class="view-tabs">
+    <button class="tab-btn active" onclick="switchView('feed')" id="tab-feed">
+      <span class="tab-icon">📡</span> Feed
+      <span class="tab-count" id="tc-feed">—</span>
+    </button>
+    <button class="tab-btn" onclick="switchView('companies')" id="tab-companies">
+      <span class="tab-icon">🏢</span> Companies
+      <span class="tab-count" id="tc-companies">—</span>
+    </button>
+    <button class="tab-btn" onclick="switchView('topics')" id="tab-topics">
+      <span class="tab-icon">🧠</span> Topics
+      <span class="tab-count" id="tc-topics">—</span>
+    </button>
+    <button class="tab-btn" onclick="switchView('charts')" id="tab-charts">
+      <span class="tab-icon">📊</span> Charts
+    </button>
+  </div>
+
+  <!-- SHARED FILTERS -->
+  <div class="filters">
+    <input id="fSearch" class="filter-search" placeholder="Search companies, summaries, stats…" oninput="onSearch()">
+    <select id="fCompany" class="filter" onchange="applyFilters()">
+      <option value="">All Companies</option>
+    </select>
+    <select id="fTopic" class="filter" onchange="applyFilters()">
+      <option value="">All Topics</option>
+      <option value="capability_claim">Capability Claim</option>
+      <option value="efficiency_metric">Efficiency Metric</option>
+      <option value="investment_strategy">Investment Strategy</option>
+      <option value="thought_leadership">Thought Leadership</option>
+      <option value="regulatory_risk">Regulatory Risk</option>
+      <option value="customer_facing_launch">Customer Launch</option>
+    </select>
+    <select id="fSentiment" class="filter" onchange="applyFilters()">
+      <option value="">All Sentiments</option>
+      <option value="positive">Positive</option>
+      <option value="neutral">Neutral</option>
+      <option value="cautious">Cautious</option>
+    </select>
+    <select id="fTier" class="filter" onchange="applyFilters()">
+      <option value="">All Tiers</option>
+      <option value="1">Tier 1 — Fintech &amp; Banks</option>
+      <option value="2">Tier 2 — Big Tech</option>
+      <option value="3">Tier 3 — Macro / Regulatory</option>
+    </select>
+    <select id="fSource" class="filter" onchange="applyFilters()">
+      <option value="">All Sources</option>
+    </select>
+    <span class="filter-count" id="fCount"></span>
+  </div>
+
+  <!-- FEED PANEL -->
+  <div id="panel-feed" class="view-panel active">
+    <div class="section-header">Live Intelligence Feed</div>
+    <div id="feed" class="signal-feed">
+      <div class="loading"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+    </div>
+  </div>
+
+  <!-- COMPANIES PANEL -->
+  <div id="panel-companies" class="view-panel">
+    <div class="section-header">Company Watchlist — click any card to filter the feed</div>
+    <div id="companyGrid" class="company-grid"></div>
+  </div>
+
+  <!-- TOPICS PANEL -->
+  <div id="panel-topics" class="view-panel">
+    <div class="section-header">Signals by Topic — click headers to collapse</div>
+    <div id="topicGroups"></div>
+  </div>
+
+  <!-- CHARTS PANEL -->
+  <div id="panel-charts" class="view-panel">
+    <div class="chart-grid">
+      <div class="chart-box full-width">
+        <div class="chart-title">Signal Volume — Last 14 Days</div>
+        <div class="chart-canvas-wrap">
+          <canvas id="chart-volume"></canvas>
+        </div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-title">Top Companies by Signal Count</div>
+        <div class="chart-canvas-wrap tall">
+          <canvas id="chart-companies"></canvas>
+        </div>
+      </div>
+      <div class="chart-box">
+        <div class="chart-title">Sentiment Distribution</div>
+        <div class="chart-canvas-wrap tall">
+          <canvas id="chart-sentiment"></canvas>
+        </div>
+      </div>
+      <div class="chart-box full-width">
+        <div class="chart-title">Topic Breakdown</div>
+        <div class="chart-canvas-wrap">
+          <canvas id="chart-topics"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ─────────────────────────────────────────────────────────────────
+//  CONFIG
+// ─────────────────────────────────────────────────────────────────
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyPkrcMsV75Crdp0nYGilGonQ4oAkBsCXZ4H0YjTOVqGSBIJJl4JeQuhAcEywdoVVcX/exec';
+
+// Companies to show in the dashboard — all others are filtered out
+const PRIORITY_COMPANIES = new Set([
+  'Chime', 'Revolut', 'SoFi', 'Plaid', 'Affirm', 'Cash App', 'Block',
+  'Klarna', 'Robinhood', 'Nubank', 'JPMorgan Chase', 'Bank of America',
+  'Wells Fargo', 'Citibank', 'Citi', 'BNY', 'BNY Mellon',
+  'Visa', 'Mastercard', 'Google', 'OpenAI', 'Anthropic', 'Microsoft', 'Meta',
+  'General / Industry',
+]);
+
+const TOPIC_LABELS = {
+  capability_claim:       'Capability Claim',
+  efficiency_metric:      'Efficiency Metric',
+  investment_strategy:    'Investment Strategy',
+  thought_leadership:     'Thought Leadership',
+  regulatory_risk:        'Regulatory Risk',
+  customer_facing_launch: 'Customer Launch',
+};
+const TOPIC_ICONS = {
+  capability_claim:       '🧠',
+  efficiency_metric:      '⚡',
+  investment_strategy:    '💰',
+  thought_leadership:     '💡',
+  regulatory_risk:        '⚖️',
+  customer_facing_launch: '🚀',
+};
+const TOPIC_ORDER = ['capability_claim','efficiency_metric','investment_strategy','thought_leadership','regulatory_risk','customer_facing_launch'];
+
+// Chart colors for topics (resolved from CSS vars at runtime)
+const TOPIC_CHART_COLORS = ['#0369A1','#1EC677','#D97706','#0D9488','#DC2626','#059669'];
+
+const COMPANY_COLORS = {
+  'Chime':           '#1EC677',
+  'JPMorgan Chase':  '#003087',
+  'JPMorgan':        '#003087',
+  'Bank of America': '#C0001A',
+  'Goldman Sachs':   '#2C5F8A',
+  'Wells Fargo':     '#B01B1B',
+  'Morgan Stanley':  '#0048A3',
+  'Citi':            '#003B70',
+  'Citibank':        '#003B70',
+  'Stripe':          '#635BFF',
+  'Capital One':     '#C0001A',
+  'Visa':            '#1A1F71',
+  'Mastercard':      '#EB001B',
+  'PayPal':          '#003087',
+  'Cash App':        '#00D632',
+  'Square':          '#3E4348',
+  'Block':           '#3E4348',
+  'Robinhood':       '#00C805',
+  'SoFi':            '#5A2BA8',
+  'Affirm':          '#3D5AFE',
+  'Klarna':          '#FF6685',
+  'Apple':           '#555555',
+  'Google':          '#1A73E8',
+  'Meta':            '#0866FF',
+  'Microsoft':       '#0078D4',
+  'Amazon':          '#FF9900',
+  'OpenAI':          '#10A37F',
+  'Anthropic':       '#C96442',
+  'Nvidia':          '#76B900',
+  'CFPB':            '#205493',
+  'OCC':             '#2C5F8A',
+  'Federal Reserve': '#1B4F72',
+  'SEC':             '#003366',
+  'McKinsey':        '#1B6CA8',
+  'Deloitte':        '#86BC25',
+  'Accenture':       '#A100FF',
+};
+const COLOR_PALETTE = [
+  '#1EC677','#0369A1','#D97706','#0D9488','#DC2626','#059669',
+  '#5A2BA8','#C0001A','#003087','#76B900','#10A37F','#1A73E8',
+];
+
+function companyColor(name) {
+  if (COMPANY_COLORS[name]) return COMPANY_COLORS[name];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  return COLOR_PALETTE[Math.abs(hash) % COLOR_PALETTE.length];
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  DEMO DATA
+// ─────────────────────────────────────────────────────────────────
+function ago(n, unit) {
+  const ms = unit === 'h' ? n * 3600000 : n * 86400000;
+  return new Date(Date.now() - ms).toISOString();
+}
+
+const DEMO = [
+  { id:'d1',  ingested_at: ago(1,'h'),  company:'JPMorgan Chase',  company_tier:1, topic_category:'efficiency_metric',      sentiment:'positive', summary:'JPMorgan Chase reported its AI-powered fraud detection system reduced fraud losses by 40% in Q1 2026, one of the largest AI efficiency gains reported in banking this year.',                                             key_stat:'40% reduction in fraud losses',        direct_quote:'AI is now central to everything we do at JPMorgan.',                                              executive_name:'Jamie Dimon',     source_name:'Bloomberg',                source_channel:'#signal-monitoring',    confidence_score:0.92, url:'https://bloomberg.com' },
+  { id:'d2',  ingested_at: ago(3,'h'),  company:'Chime',           company_tier:1, topic_category:'customer_facing_launch', sentiment:'positive', summary:'Chime launched an AI-powered financial guidance assistant that provides personalized spending insights and savings recommendations to members in real time.',                                           key_stat:null,                                   direct_quote:null,                                                                                              executive_name:null,             source_name:'Tearsheet',                source_channel:'Google News',           confidence_score:0.85, url:'https://tearsheet.co/artificial-intelligence/chime-ai-financial-guidance-assistant/' },
+  { id:'d3',  ingested_at: ago(5,'h'),  company:'Capital One',     company_tier:1, topic_category:'thought_leadership',     sentiment:'positive', summary:"Capital One CEO Richard Fairbank outlined the bank's AI-first strategy at a fintech conference, positioning it as a technology company that happens to do banking.",                                   key_stat:'$500M AI investment planned for 2026', direct_quote:"We've been building toward this AI moment for 30 years. Our entire infrastructure was designed for it.", executive_name:'Richard Fairbank', source_name:'Finextra',                source_channel:'#signal-monitoring',    confidence_score:0.88, url:'https://finextra.com' },
+  { id:'d4',  ingested_at: ago(8,'h'),  company:'Stripe',          company_tier:1, topic_category:'capability_claim',       sentiment:'positive', summary:'Stripe announced Radar AI 3.0, a next-generation fraud prevention model using LLMs to detect novel fraud patterns that rule-based systems miss.',                                                      key_stat:'15% improvement in fraud detection',   direct_quote:null,                                                                                              executive_name:null,             source_name:'TechCrunch',               source_channel:'RSS',                   confidence_score:0.81, url:'https://techcrunch.com' },
+  { id:'d5',  ingested_at: ago(11,'h'), company:'Goldman Sachs',   company_tier:1, topic_category:'investment_strategy',    sentiment:'positive', summary:'Goldman Sachs announced a $1.2B AI infrastructure investment over three years, including 2,000 new AI engineering hires and expanded cloud partnerships.',                                             key_stat:'$1.2B investment, 2,000 new hires',    direct_quote:null,                                                                                              executive_name:null,             source_name:'Financial Times',          source_channel:'#ai-social-monitoring', confidence_score:0.91, url:'https://ft.com' },
+  { id:'d6',  ingested_at: ago(14,'h'), company:'CFPB',            company_tier:3, topic_category:'regulatory_risk',        sentiment:'cautious', summary:"The CFPB issued new guidance warning that AI-driven credit decisions may perpetuate discriminatory patterns, with plans to audit major lenders' AI models for fair lending compliance.",            key_stat:null,                                   direct_quote:'Algorithmic systems must be held to the same fair lending standards as human decision-makers.',    executive_name:null,             source_name:'American Banker',          source_channel:'RSS',                   confidence_score:0.79, url:'https://www.americanbanker.com/news/cfpb-ai-credit-decisions-fair-lending-guidance' },
+  { id:'d7',  ingested_at: ago(22,'h'), company:'Visa',            company_tier:1, topic_category:'efficiency_metric',      sentiment:'positive', summary:"Visa reported its AI transaction monitoring system now processes 76,000 transactions per second with a 99.97% accuracy rate, preventing $4.8B in fraud annually.",                                  key_stat:'$4.8B in fraud prevented annually',    direct_quote:null,                                                                                              executive_name:null,             source_name:'PYMNTS',                   source_channel:'RSS',                   confidence_score:0.87, url:'https://pymnts.com' },
+  { id:'d8',  ingested_at: ago(28,'h'), company:'McKinsey',        company_tier:3, topic_category:'thought_leadership',     sentiment:'neutral',  summary:'McKinsey published research finding that financial services companies deploying AI at scale are seeing 20-30% cost reductions in back-office operations, but only 15% of firms have reached scale.',key_stat:'20-30% cost reduction in back-office', direct_quote:null,                                                                                              executive_name:null,             source_name:'McKinsey Global Institute', source_channel:'Google News',          confidence_score:0.83, url:'https://www.mckinsey.com/industries/financial-services/our-insights/ai-at-scale-in-financial-services' },
+  { id:'d9',  ingested_at: ago(2,'d'),  company:'Microsoft',       company_tier:2, topic_category:'capability_claim',       sentiment:'positive', summary:'Microsoft announced Copilot for Finance will embed directly into Azure banking partners, offering real-time financial analysis and anomaly detection across enterprise ledgers.',                      key_stat:'500+ bank partners in preview',        direct_quote:null,                                                                                              executive_name:'Satya Nadella',  source_name:'The Verge',                source_channel:'#ai-social-monitoring', confidence_score:0.89, url:'https://theverge.com' },
+  { id:'d10', ingested_at: ago(3,'d'),  company:'Google',          company_tier:2, topic_category:'investment_strategy',    sentiment:'positive', summary:'Google DeepMind and Google Cloud announced a joint $800M fintech AI fund targeting early-stage startups building AI-native financial infrastructure.',                                                 key_stat:'$800M fintech AI fund',               direct_quote:null,                                                                                              executive_name:null,             source_name:'Bloomberg',                source_channel:'#signal-monitoring',    confidence_score:0.86, url:'https://bloomberg.com' },
+  { id:'d11', ingested_at: ago(4,'d'),  company:'Bank of America', company_tier:1, topic_category:'efficiency_metric',      sentiment:'positive', summary:"Bank of America revealed that its internal AI assistant Erica now handles 58% of all customer service interactions, saving an estimated $1.1B in operational costs annually.",                      key_stat:'58% customer service deflection rate', direct_quote:null,                                                                                              executive_name:null,             source_name:'Banking Dive',             source_channel:'Google News',           confidence_score:0.90, url:'https://www.bankingdive.com/news/bank-of-america-erica-ai-assistant-58-percent-customer-service/742891/' },
+  { id:'d12', ingested_at: ago(5,'d'),  company:'Federal Reserve', company_tier:3, topic_category:'regulatory_risk',        sentiment:'cautious', summary:'The Federal Reserve published a staff paper outlining systemic risk concerns from AI-driven trading correlations, flagging the potential for flash-crash amplification in volatile markets.',       key_stat:null,                                   direct_quote:'Correlated AI behavior across institutions could amplify market stress in ways we have not modeled.', executive_name:null,         source_name:'Federal Reserve',          source_channel:'RSS',                   confidence_score:0.75, url:'https://www.federalreserve.gov/econres/feds/ai-trading-correlations-systemic-risk-2026.htm' },
+];
+
+// ─────────────────────────────────────────────────────────────────
+//  STATE
+// ─────────────────────────────────────────────────────────────────
+let all = [], visible = [];
+let activeView = 'feed';
+const chartInstances = {};
+let searchTimer = null;
+
+// Detect dark mode for chart colors
+const isDark = () => window.matchMedia('(prefers-color-scheme: dark)').matches;
+const GC = () => ({
+  tick: isDark() ? 'rgba(236,249,238,0.5)' : 'rgba(13,64,41,0.45)',
+  grid: isDark() ? 'rgba(236,249,238,0.07)' : 'rgba(13,64,41,0.07)',
+});
+
+// ─────────────────────────────────────────────────────────────────
+//  VIEW SWITCHING
+// ─────────────────────────────────────────────────────────────────
+function switchView(view) {
+  activeView = view;
+  ['feed','companies','topics','charts'].forEach(v => {
+    document.getElementById(`panel-${v}`).classList.toggle('active', v === view);
+    document.getElementById(`tab-${v}`).classList.toggle('active', v === view);
+  });
+  if (view === 'companies') renderCompanies(visible);
+  if (view === 'topics')    renderTopics(visible);
+  if (view === 'charts')    renderCharts(visible);
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  DATA LOADING
+// ─────────────────────────────────────────────────────────────────
+async function loadData() {
+  const btn = document.getElementById('refreshBtn');
+  btn.classList.add('spinning');
+  setFeed('<div class="loading"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>');
+
+  const live = APPS_SCRIPT_URL && APPS_SCRIPT_URL !== 'YOUR_APPS_SCRIPT_URL_HERE';
+  if (live) {
+    try {
+      const res = await fetch(APPS_SCRIPT_URL);
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) {
+        all = data.sort((a,b) => new Date(b.ingested_at) - new Date(a.ingested_at));
+        hide('demoBanner');
+      } else { all = DEMO; show('demoBanner'); }
+    } catch { all = DEMO; show('demoBanner'); }
+  } else { all = DEMO; show('demoBanner'); }
+
+  populateFilters();
+  updateStats();
+  applyFilters();
+  document.getElementById('lastUpdated').textContent =
+    'Updated ' + new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+  btn.classList.remove('spinning');
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  FILTERS
+// ─────────────────────────────────────────────────────────────────
+function populateFilters() {
+  // Only list companies that have at least one signal with a URL (those are the only ones ever shown)
+  const withUrl = all.filter(s => s.url);
+  const companies = [...new Set(withUrl.map(s => s.company).filter(Boolean))].sort();
+  const sources   = [...new Set(withUrl.map(s => s.source_name).filter(Boolean))].sort();
+  sel('fCompany', '<option value="">All Companies</option>' + companies.map(c => `<option>${esc(c)}</option>`).join(''));
+  sel('fSource',  '<option value="">All Sources</option>'   + sources.map(s => `<option>${esc(s)}</option>`).join(''));
+}
+
+function onSearch() {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(applyFilters, 180);
+}
+
+function applyFilters() {
+  const q  = v('fSearch').toLowerCase();
+  const co = v('fCompany'), tp = v('fTopic'), se = v('fSentiment'), sr = v('fSource'), ti = v('fTier');
+  visible = all.filter(s => {
+    if (co && s.company !== co) return false;
+    if (tp && s.topic_category !== tp) return false;
+    if (se && s.sentiment !== se) return false;
+    if (sr && s.source_name !== sr) return false;
+    if (ti && String(s.company_tier) !== ti) return false;
+    if (q) {
+      const hay = [s.company,s.summary,s.key_stat,s.direct_quote,s.executive_name,s.source_name].join(' ').toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+
+  // When no specific company is selected, restrict to priority companies only.
+  // When a specific company IS selected (including non-priority ones), show it.
+  if (!co) {
+    visible = visible.filter(s => PRIORITY_COMPANIES.has(s.company));
+  }
+
+  // Require a source URL — signals without one are never shown in the dashboard
+  visible = visible.filter(s => s.url);
+
+  const coSet = new Set(visible.map(s => s.company).filter(Boolean));
+  const tpSet = new Set(visible.map(s => s.topic_category).filter(Boolean));
+  set('tc-feed',      visible.length);
+  set('tc-companies', coSet.size);
+  set('tc-topics',    tpSet.size);
+  document.getElementById('fCount').textContent =
+    visible.length === all.length ? `${all.length} signals` : `${visible.length} of ${all.length}`;
+
+  render(visible);
+  if (activeView === 'companies') renderCompanies(visible);
+  if (activeView === 'topics')    renderTopics(visible);
+  if (activeView === 'charts')    renderCharts(visible);
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  STATS BAR
+// ─────────────────────────────────────────────────────────────────
+function getCurrentQuarterStart() {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = now.getMonth(); // 0-indexed
+  // Quarter starts: Feb(1), May(4), Aug(7), Nov(10)
+  const starts = [1, 4, 7, 10];
+  for (let i = starts.length - 1; i >= 0; i--) {
+    if (m >= starts[i]) return new Date(y, starts[i], 1);
+  }
+  return new Date(y - 1, 10, 1); // Nov of previous year
+}
+
+function getQuarterLabel(start) {
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const endMonth = new Date(start.getFullYear(), start.getMonth() + 3, 0);
+  return `${months[start.getMonth()]}–${months[endMonth.getMonth()]} ${start.getFullYear()}`;
+}
+
+function updateStats() {
+  const weekCutoff = Date.now() - 7 * 86400000;
+  const qStart     = getCurrentQuarterStart();
+  const week       = all.filter(s => new Date(s.ingested_at) >= weekCutoff);
+  const quarter    = all.filter(s => new Date(s.ingested_at) >= qStart);
+  const tc         = {};
+  all.forEach(s => { if (s.topic_category) tc[s.topic_category] = (tc[s.topic_category]||0) + 1; });
+  const top = Object.entries(tc).sort((a,b) => b[1]-a[1])[0];
+
+  // Companies Tracked = priority list size (excluding General / Industry)
+  const trackedCount = [...PRIORITY_COMPANIES].filter(c => c !== 'General / Industry').length;
+
+  set('sTotal',         quarter.length);
+  set('sTotalSub',      getQuarterLabel(qStart));
+  set('sCompanies',     trackedCount);
+  set('sWeek',          week.length);
+  set('sWeekLabel',     `across ${[...new Set(week.map(s=>s.company))].length} companies`);
+  set('sTopTopic',      top ? (TOPIC_LABELS[top[0]] || top[0]) : '—');
+  set('sTopTopicCount', top ? `${top[1]} signals` : '');
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  FEED RENDER
+// ─────────────────────────────────────────────────────────────────
+function render(signals) {
+  if (!signals.length) {
+    setFeed('<div class="empty"><h3>No signals match your filters</h3><p>Try adjusting the filters above.</p></div>');
+    return;
+  }
+  setFeed(signals.map(signalCard).join(''));
+}
+
+function signalCard(s) {
+  const tier  = s.company_tier ? `<span class="badge badge-tier t${s.company_tier}">T${s.company_tier}</span>` : '';
+  const topic = s.topic_category
+    ? `<span class="badge badge-topic tp-${s.topic_category}">${TOPIC_LABELS[s.topic_category] || s.topic_category}</span>` : '';
+  const sentLabel = { positive:'Positive', neutral:'Neutral', cautious:'Cautious' };
+  const sent  = `<span class="sent-dot s-${s.sentiment||'neutral'}" title="${sentLabel[s.sentiment]||'Neutral'}"></span>`;
+  const conf  = s.confidence_score != null
+    ? `<span class="confidence-badge">${Math.round(s.confidence_score * 100)}%</span>` : '';
+  const time  = s.ingested_at
+    ? `<span class="card-time">${timeAgo(s.ingested_at)} · ${esc(s.source_channel || s.source_name || '')}</span>` : '';
+
+  const stat  = s.key_stat
+    ? `<div class="card-stat">📊 ${esc(s.key_stat)}</div>` : '';
+  const quote = s.direct_quote
+    ? `<div class="card-quote">"${esc(s.direct_quote)}"${s.executive_name ? `<br><span class="quote-attr">— ${esc(s.executive_name)}</span>` : ''}</div>` : '';
+  const extras = (stat || quote) ? `<div class="card-extras">${stat}${quote}</div>` : '';
+
+  const icon    = srcIcon(s.source_type, s.url);
+  const srcPill = s.url
+    ? `<a href="${esc(s.url)}" target="_blank" rel="noopener" class="source-link">
+         <span class="source-pill">${icon}${esc(s.source_name||'')}</span>
+       </a>`
+    : `<span class="source-pill no-source">${icon}${esc(s.source_name||'')}</span>`;
+  const readBtn = s.url
+    ? `<a href="${esc(s.url)}" target="_blank" rel="noopener" class="card-link">Read ↗</a>` : '';
+
+  return `<div class="signal-card">
+    <div class="card-head">
+      <span class="badge badge-company">${esc(s.company||'Unknown')}</span>
+      ${tier}${topic}${sent}${conf}${time}
+    </div>
+    <div class="card-summary">${esc(s.summary||'')}</div>
+    ${extras}
+    <div class="card-foot">${srcPill}${readBtn}</div>
+  </div>`;
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  COMPANY CARDS
+// ─────────────────────────────────────────────────────────────────
+function renderCompanies(signals) {
+  const grid = document.getElementById('companyGrid');
+  if (!signals.length) {
+    grid.innerHTML = '<div class="empty"><h3>No companies in current filters</h3></div>';
+    return;
+  }
+  const byCompany = {};
+  signals.forEach(s => {
+    const co = s.company || 'Unknown';
+    if (!byCompany[co]) byCompany[co] = { sigs: [], tier: s.company_tier || 9 };
+    byCompany[co].sigs.push(s);
+    if (s.company_tier) byCompany[co].tier = Math.min(byCompany[co].tier, s.company_tier);
+  });
+  const cutoff = Date.now() - 7 * 86400000;
+  const sorted = Object.entries(byCompany).sort((a,b) => {
+    const td = a[1].tier - b[1].tier;
+    return td !== 0 ? td : b[1].sigs.length - a[1].sigs.length;
+  });
+  grid.innerHTML = sorted.map(([name, { sigs, tier }]) => {
+    const color   = companyColor(name);
+    const initial = name[0].toUpperCase();
+    const latest  = sigs[0];
+    const weekCt  = sigs.filter(s => new Date(s.ingested_at) >= cutoff).length;
+    const total   = sigs.length;
+    const pos = sigs.filter(s=>s.sentiment==='positive').length;
+    const neu = sigs.filter(s=>s.sentiment==='neutral').length;
+    const cau = sigs.filter(s=>s.sentiment==='cautious').length;
+    const sentBar = `<div class="sentiment-mini" title="Positive: ${pos} · Neutral: ${neu} · Cautious: ${cau}">
+      ${pos ? `<div class="sm-pos" style="flex:${pos}"></div>` : ''}
+      ${neu ? `<div class="sm-neu" style="flex:${neu}"></div>` : ''}
+      ${cau ? `<div class="sm-cau" style="flex:${cau}"></div>` : ''}
+    </div>`;
+    const tierBadge = tier < 9 ? `<span class="badge badge-tier t${tier}" style="font-size:10px">T${tier}</span>` : '';
+    const weekBadge = weekCt > 0 ? `<span class="co-week-badge">${weekCt} this week</span>` : `<span style="color:var(--text-3);font-size:10px">quiet this week</span>`;
+    const latestText = latest ? esc((latest.summary||'').substring(0, 130)) + ((latest.summary||'').length > 130 ? '…' : '') : '';
+    const statLine  = latest?.key_stat
+      ? `<div class="company-stat-inline">📊 ${esc(latest.key_stat)}</div>` : '';
+    return `<div class="company-card" style="--co-color:${color}" onclick="filterToCompany('${esc(name)}')">
+      <div class="company-card-head">
+        <div class="company-avatar" style="background:${color}">${initial}</div>
+        <div class="company-meta">
+          <div class="company-name">${esc(name)}</div>
+          <div class="company-sub">${tierBadge}${weekBadge}</div>
+        </div>
+      </div>
+      ${sentBar}
+      <div class="company-latest">${latestText}</div>
+      ${statLine}
+      <div class="company-card-foot">
+        <span class="company-last-seen">${total} signal${total!==1?'s':''} · ${latest ? timeAgo(latest.ingested_at) : '?'}</span>
+        <span class="company-cta">View signals →</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterToCompany(name) {
+  document.getElementById('fCompany').value = name;
+  switchView('feed');
+  applyFilters();
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  TOPIC GROUPS
+// ─────────────────────────────────────────────────────────────────
+function renderTopics(signals) {
+  const container = document.getElementById('topicGroups');
+  const byTopic = {};
+  signals.forEach(s => {
+    const tp = s.topic_category || 'other';
+    if (!byTopic[tp]) byTopic[tp] = [];
+    byTopic[tp].push(s);
+  });
+  const ordered = [...new Set([...TOPIC_ORDER, ...Object.keys(byTopic)])].filter(t => byTopic[t]);
+  if (!ordered.length) {
+    container.innerHTML = '<div class="empty"><h3>No signals in current filters</h3></div>';
+    return;
+  }
+  const PREVIEW = 4;
+  container.innerHTML = ordered.map(tp => {
+    const sigs  = byTopic[tp];
+    const label = TOPIC_LABELS[tp] || tp;
+    const icon  = TOPIC_ICONS[tp]  || '📌';
+    const cls   = `badge badge-topic tp-${tp}`;
+    const pre   = sigs.slice(0, PREVIEW).map(s => signalCard(s)).join('');
+    const more  = sigs.length > PREVIEW ? sigs.slice(PREVIEW).map(s => signalCard(s)).join('') : '';
+    return `<div class="topic-section" id="topic-sec-${tp}">
+      <div class="topic-header-row" onclick="toggleTopic('${tp}')">
+        <span class="topic-icon">${icon}</span>
+        <span class="topic-name">${esc(label)}</span>
+        <span class="${cls} topic-count-badge">${sigs.length} signal${sigs.length!==1?'s':''}</span>
+        <span class="topic-expand-arrow">▾</span>
+      </div>
+      <div class="topic-body">
+        <div class="topic-cards">${pre}</div>
+        ${sigs.length > PREVIEW ? `
+          <div id="topic-more-${tp}" class="topic-cards" style="display:none">${more}</div>
+          <div class="topic-more-btn" id="topic-morebtn-${tp}" onclick="showMoreTopic('${tp}')">
+            Show ${sigs.length - PREVIEW} more ▾
+          </div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleTopic(tp) { document.getElementById(`topic-sec-${tp}`).classList.toggle('collapsed'); }
+function showMoreTopic(tp) {
+  document.getElementById(`topic-more-${tp}`).style.display = '';
+  document.getElementById(`topic-morebtn-${tp}`).style.display = 'none';
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  CHARTS
+// ─────────────────────────────────────────────────────────────────
+function renderCharts(signals) {
+  renderVolumeChart(signals);
+  renderCompanyChart(signals);
+  renderSentimentChart(signals);
+  renderTopicChart(signals);
+}
+
+function renderVolumeChart(signals) {
+  const gc = GC();
+  const labels = [], counts = [];
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate() - i);
+    const next = new Date(d); next.setDate(d.getDate() + 1);
+    labels.push(d.toLocaleDateString('en-US', {month:'short', day:'numeric'}));
+    counts.push(signals.filter(s => { const dt = new Date(s.ingested_at); return dt >= d && dt < next; }).length);
+  }
+  const ctx = document.getElementById('chart-volume').getContext('2d');
+  if (chartInstances.volume) chartInstances.volume.destroy();
+  chartInstances.volume = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets: [{ label: 'Signals', data: counts, backgroundColor: 'rgba(30,198,119,0.35)', borderColor: '#1EC677', borderWidth: 1.5, borderRadius: 5 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: gc.grid }, ticks: { color: gc.tick, font: {size:11, family:'Helvetica Neue'} } },
+        y: { grid: { color: gc.grid }, ticks: { color: gc.tick, font: {size:11, family:'Helvetica Neue'}, precision: 0 }, beginAtZero: true }
+      }
+    }
+  });
+}
+
+function renderCompanyChart(signals) {
+  const gc = GC();
+  const counts = {};
+  signals.forEach(s => { if (s.company) counts[s.company] = (counts[s.company]||0) + 1; });
+  const sorted = Object.entries(counts).sort((a,b) => b[1]-a[1]).slice(0, 10);
+  const labels = sorted.map(e => e[0]);
+  const data   = sorted.map(e => e[1]);
+  const colors = labels.map(n => companyColor(n));
+  const ctx = document.getElementById('chart-companies').getContext('2d');
+  if (chartInstances.companies) chartInstances.companies.destroy();
+  chartInstances.companies = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets: [{ data, backgroundColor: colors.map(c => c + '55'), borderColor: colors, borderWidth: 1.5, borderRadius: 4 }] },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: gc.grid }, ticks: { color: gc.tick, font:{size:11}, precision:0 }, beginAtZero: true },
+        y: { grid: { display: false }, ticks: { color: gc.tick, font:{size:11} } }
+      }
+    }
+  });
+}
+
+function renderSentimentChart(signals) {
+  const gc  = GC();
+  const pos = signals.filter(s => s.sentiment === 'positive').length;
+  const neu = signals.filter(s => s.sentiment === 'neutral').length;
+  const cau = signals.filter(s => s.sentiment === 'cautious').length;
+  const tot = signals.length || 1;
+  const ctx = document.getElementById('chart-sentiment').getContext('2d');
+  if (chartInstances.sentiment) chartInstances.sentiment.destroy();
+  chartInstances.sentiment = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Positive','Neutral','Cautious'],
+      datasets: [{
+        data: [pos, neu, cau],
+        backgroundColor: ['rgba(22,163,74,0.75)','rgba(107,114,128,0.75)','rgba(217,119,6,0.75)'],
+        borderColor: ['#16A34A','#6B7280','#D97706'],
+        borderWidth: 2, hoverOffset: 5
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '65%',
+      plugins: {
+        legend: { position: 'bottom', labels: { color: gc.tick, font:{size:12, family:'Helvetica Neue'}, padding:18, boxWidth:12 } },
+        tooltip: { callbacks: { label: c => `${c.label}: ${c.raw} (${Math.round(c.raw/tot*100)}%)` } }
+      }
+    }
+  });
+}
+
+function renderTopicChart(signals) {
+  const gc = GC();
+  const counts = {};
+  signals.forEach(s => { if (s.topic_category) counts[s.topic_category] = (counts[s.topic_category]||0) + 1; });
+  const filtered = TOPIC_ORDER.filter(t => counts[t]);
+  const labels   = filtered.map(t => TOPIC_LABELS[t] || t);
+  const data     = filtered.map(t => counts[t]);
+  const colors   = filtered.map((_,i) => TOPIC_CHART_COLORS[i % TOPIC_CHART_COLORS.length]);
+  const ctx = document.getElementById('chart-topics').getContext('2d');
+  if (chartInstances.topics) chartInstances.topics.destroy();
+  chartInstances.topics = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets: [{ data, backgroundColor: colors.map(c => c + '55'), borderColor: colors, borderWidth: 1.5, borderRadius: 5 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: gc.tick, font:{size:11} } },
+        y: { grid: { color: gc.grid }, ticks: { color: gc.tick, font:{size:11}, precision:0 }, beginAtZero: true }
+      }
+    }
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────
+//  UTILS
+// ─────────────────────────────────────────────────────────────────
+function srcIcon(type, url) {
+  const u = (url||'').toLowerCase();
+  if (u.includes('x.com/') || u.includes('twitter.com/')) return '𝕏 ';
+  if (u.includes('linkedin.com/'))  return 'in ';
+  if (u.includes('youtube.com/'))   return '▶ ';
+  if (type === 'newsletter' || type === 'email') return '✉ ';
+  if (type === 'press_release')  return '§ ';
+  if (type === 'earnings_call')  return '$ ';
+  if (url) return '↗ ';
+  return '';
+}
+
+function timeAgo(d) {
+  const m = Math.floor((Date.now() - new Date(d)) / 60000);
+  if (m < 60)   return `${m}m ago`;
+  if (m < 1440) return `${Math.floor(m/60)}h ago`;
+  return `${Math.floor(m/1440)}d ago`;
+}
+
+const esc     = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const v       = id => document.getElementById(id).value;
+const set     = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+const sel     = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
+const setFeed = html => { document.getElementById('feed').innerHTML = html; };
+const show    = id => document.getElementById(id).classList.add('show');
+const hide    = id => document.getElementById(id).classList.remove('show');
+
+// Auto-refresh every 5 minutes
+setInterval(loadData, 5 * 60 * 1000);
+loadData();
+</script>
+</body>
+</html>
